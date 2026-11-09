@@ -1,0 +1,3 @@
+# The nano detector is downloaded on first `POST /detection/start`.
+# Pinning avoids a silent model-runtime change between classroom tests.
+ultralytics==8.4.202

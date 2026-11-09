@@ -1,0 +1,39 @@
+import asyncio
+import firebase_admin
+from firebase_admin import db
+import json
+
+# Simple decision engine constants
+OCCUPANCY_THRESHOLD = 1  # if any person detected in any zone turn on LED
+LED_APPLIANCE_ID = 'led1'
+
+class DecisionEngine:
+    def __init__(self):
+        self.running = True
+        # Reference to mode, occupancy, appliances
+        self.mode_ref = db.reference('ATOM/classroom1/mode')
+        self.occupancy_ref = db.reference('ATOM/classroom1/occupancy')
+        self.appliance_ref = db.reference(f'ATOM/classroom1/appliances/{LED_APPLIANCE_ID}')
+        self.command_ref = db.reference(f'ATOM/classroom1/commands/{LED_APPLIANCE_ID}')
+
+    async def run_loop(self):
+        while self.running:
+            try:
+                mode = self.mode_ref.get() or 'automatic'
+                occupancy = self.occupancy_ref.get() or {}
+                total_people = sum(occupancy.get(zone, 0) for zone in occupancy)
+                # Determine desired state based on mode and occupancy
+                desired_state = 'on' if (mode == 'automatic' and total_people >= OCCUPANCY_THRESHOLD) else 'off'
+                # Read current reported state
+                current_state = self.appliance_ref.child('state').get() or 'off'
+                if desired_state != current_state:
+                    # Publish command via MQTT through backend API (simplified: write to command node)
+                    self.command_ref.set({'state': desired_state, 'timestamp': datetime.now(timezone.utc).isoformat()})
+                # Wait a short interval before next evaluation
+                await asyncio.sleep(2)
+            except Exception as e:
+                print(f'DecisionEngine error: {e}')
+                await asyncio.sleep(5)
+
+decision_engine = DecisionEngine()
+

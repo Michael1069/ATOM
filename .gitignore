@@ -1,0 +1,16 @@
+# Secrets and local Python environments
+**/.env
+**/serviceAccount.json
+**/venv/
+**/__pycache__/
+*.py[cod]
+
+# Downloaded YOLO assets and local runtime state
+**/.ultralytics/
+**/yolo26n.pt
+**/bus.jpg
+
+# Generated Flutter and platform builds
+**/.dart_tool/
+**/build/
+**/.flutter-plugins-dependencies

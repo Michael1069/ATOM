@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "559596338945",
+    "firebase_url": "https://atom-classroom-automation-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "atom-classroom-automation",
+    "storage_bucket": "atom-classroom-automation.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:559596338945:android:f1905a5f8e7ca7d3f46500",
+        "android_client_info": {
+          "package_name": "com.example.atom_flutter"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA0JKGMs9CtzIawli38i_NHAcMrz0hbnEQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

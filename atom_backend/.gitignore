@@ -1,0 +1,9 @@
+# Secrets
+serviceAccount.json
+.env
+
+# Downloaded YOLO runtime assets; requirements-yolo.txt recreates them.
+.ultralytics/
+yolo26n.pt
+bus.jpg
+

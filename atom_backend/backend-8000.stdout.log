@@ -1,0 +1,15 @@
+INFO:     127.0.0.1:51183 - "POST /api/camera/start HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63105 - "GET /api/camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53144 - "GET /api/camera/stream?v=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50215 - "OPTIONS /api/camera/start HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50215 - "POST /api/camera/start HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50215 - "GET /api/camera/stream?v=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61314 - "OPTIONS /api/command HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64207 - "GET /api/camera/stream?v=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50091 - "POST /api/camera/start HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50091 - "GET /api/camera/stream?v=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56423 - "OPTIONS /api/command HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63667 - "GET /api/camera/stream?v=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50224 - "OPTIONS /api/camera/start HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50224 - "POST /api/camera/start HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50224 - "GET /api/camera/stream?v=1 HTTP/1.1" 200 OK

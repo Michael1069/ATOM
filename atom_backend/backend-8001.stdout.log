@@ -1,0 +1,9 @@
+INFO:     127.0.0.1:58230 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58231 - "GET /detection/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57892 - "POST /detection/start HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57723 - "GET /detection/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52996 - "POST /detection/stop HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51803 - "POST /detection/start HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49705 - "GET /detection/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56964 - "POST /detection/stop HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56966 - "GET /detection/status HTTP/1.1" 200 OK

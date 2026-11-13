@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 import 'dashboard_models.dart';
+import 'video_upload_picker.dart';
 
 const _canvas = Color(0xFF06111F);
 const _sidebarColor = Color(0xFF081827);
@@ -20,12 +21,24 @@ const _cyan = Color(0xFF24D5E8);
 const _cyanDim = Color(0xFF0B6575);
 const _good = Color(0xFF45D19A);
 const _warning = Color(0xFFF5B84A);
+const _backendBase = 'http://127.0.0.1:8000';
+const _apiKey = String.fromEnvironment('ATOM_API_KEY');
+
+Map<String, String> _apiHeaders({bool json = false}) => <String, String>{
+  if (json) 'Content-Type': 'application/json',
+  if (_apiKey.isNotEmpty) 'x-api-key': _apiKey,
+};
+
+const _modeLabels = <String, String>{
+  'automatic': 'Automatic',
+  'human_override': 'Human Override',
+  'hybrid': 'Hybrid',
+};
 
 enum DashboardNavigation {
   overview('Overview', Icons.grid_view_rounded),
   monitoring('Classroom Monitoring', Icons.sensors_rounded),
   appliances('Appliance Controls', Icons.tune_rounded),
-  automation('Automation Rules', Icons.account_tree_rounded),
   energy('Energy Analytics', Icons.bolt_rounded),
   logs('Activity Logs', Icons.receipt_long_rounded),
   settings('Settings', Icons.settings_outlined);
@@ -53,20 +66,146 @@ class _DashboardPageState extends State<DashboardPage> {
   int _totalCount = 0;
   String? _mode;
   TelemetryValue<double> _energy = const TelemetryValue<double>.unavailable();
+  Map<String, Object?> _energyModel = <String, Object?>{};
   String _connection = 'Waiting for live data';
+  String? _sessionId;
   DashboardNavigation _selected = DashboardNavigation.overview;
   StreamSubscription<DatabaseEvent>? _occupancySub;
   StreamSubscription<DatabaseEvent>? _applianceSub;
   StreamSubscription<DatabaseEvent>? _modeSub;
   StreamSubscription<DatabaseEvent>? _energySub;
   StreamSubscription<DatabaseEvent>? _logSub;
+  StreamSubscription<DatabaseEvent>? _occupancyStatusSub;
+  Map<String, Object?> _occupancyStatus = <String, Object?>{};
+  String _selectedVideoSource = 'uploaded';
+  String _cameraStatus = 'Not started';
+  bool _cameraRequestInFlight = false;
+  bool _sessionSnapshotInFlight = false;
+  bool _uploadedReady = false;
+  int _streamVersion = 0;
+  late final Timer _previewTimer;
+  final _ratedWattsController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     if (widget.listenToFirebase) {
-      _rootRef = FirebaseDatabase.instance.ref('ATOM/classroom1');
+      _startSession();
+    }
+    _previewTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      _refreshSessionSnapshot();
+      if (mounted && (_cameraStatus == 'starting' || _cameraStatus == 'running' || _cameraStatus == 'live' || _cameraStatus == 'completed' || _energyModel['reported_state'] == 'on' || _energyModel['modeled_state'] == 'on')) {
+        setState(() => _streamVersion++);
+      }
+    });
+  }
+
+  Future<void> _startSession() async {
+    try {
+      final response = await http.post(
+        Uri.parse('$_backendBase/api/session/start'),
+        headers: _apiHeaders(),
+      );
+      if (response.statusCode != 200) throw Exception(response.body);
+      final body = jsonDecode(response.body) as Map<String, dynamic>;
+      if (!mounted) return;
+      _sessionId = body['session_id'] as String;
+      _rootRef = FirebaseDatabase.instance.ref('ATOM/classroom1/sessions/$_sessionId');
+      setState(() {
+        _zones.clear();
+        _logs = <String>[];
+        _energyModel = <String, Object?>{};
+        _mode = 'automatic';
+        _cameraStatus = 'Waiting for camera input';
+        _uploadedReady = false;
+        _connection = 'Session ready';
+      });
       _listen();
+    } catch (_) {
+      if (mounted) setState(() => _connection = 'Could not start a new demo session');
+    }
+  }
+
+  Map<String, String> _sessionHeaders({bool json = false}) => <String, String>{
+    ..._apiHeaders(json: json),
+    'x-atom-session-id': ?_sessionId,
+  };
+
+  double? get _modeledWh => modeledEnergyWh(_energyModel, DateTime.now().toUtc());
+
+  int get _modeledRunSeconds => modeledRunSeconds(_energyModel, DateTime.now().toUtc());
+
+  String get _modeledRunLabel {
+    final total = _modeledRunSeconds;
+    final minutes = total ~/ 60;
+    final seconds = total % 60;
+    return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')} modeled LED-on time';
+  }
+
+  String _formatActivity(Map<String, Object?> event) {
+    final when = DateTime.tryParse(event['at']?.toString() ?? '')?.toLocal();
+    final time = when == null
+        ? 'Just now'
+        : '${when.hour.toString().padLeft(2, '0')}:${when.minute.toString().padLeft(2, '0')}:${when.second.toString().padLeft(2, '0')}';
+    final state = event['state']?.toString().toUpperCase();
+    final reason = event['reason']?.toString().replaceAll('_', ' ');
+    final detail = reason == null || reason.isEmpty ? '' : ' — $reason';
+    final message = switch (event['kind']) {
+      'session_started' => 'New demo session ready',
+      'video_uploaded' => 'Video uploaded',
+      'detection_started' => 'Detection started',
+      'detection_stopped' => 'Detection stopped',
+      'mode_changed' => 'Operating mode changed to ${event['mode']?.toString().replaceAll('_', ' ')}',
+      'led_command_requested' => 'LED 1 requested $state$detail',
+      'device_state_reported' => 'LED 1 confirmed $state by ESP32',
+      'energy_model_state' => 'Energy estimate is tracking LED $state$detail',
+      'rated_watts_set' => 'LED 1 rated watts saved',
+      _ => event['kind']?.toString().replaceAll('_', ' ') ?? 'System update',
+    };
+    return '$time  $message';
+  }
+
+  Future<void> _refreshSessionSnapshot() async {
+    final sessionId = _sessionId;
+    if (sessionId == null || _sessionSnapshotInFlight) return;
+    _sessionSnapshotInFlight = true;
+    try {
+      final response = await http.get(
+        Uri.parse('$_backendBase/api/session/$sessionId/snapshot'),
+        headers: _sessionHeaders(),
+      );
+      if (response.statusCode != 200 || !mounted || sessionId != _sessionId) return;
+      final snapshot = parseDemoSessionSnapshot(jsonDecode(response.body));
+      final logs = snapshot.logs..sort(
+        (a, b) => (b['at']?.toString() ?? '').compareTo(a['at']?.toString() ?? ''),
+      );
+      setState(() {
+        _zones
+          ..clear()
+          ..addAll(snapshot.zones);
+        _totalCount = _zones.values.fold(0, (sum, value) => sum + value);
+        _occupancyStatus = snapshot.status;
+        _energyModel = snapshot.energy;
+        final ratedWatts = _energyModel['rated_watts'];
+        if (ratedWatts != null) _ratedWattsController.text = ratedWatts.toString();
+        _logs = logs.map((event) {
+          final reason = event['reason'] ?? event['status'] ?? event['state'] ?? '';
+          return '${event['at'] ?? ''} â€¢ ${event['kind'] ?? 'event'}${reason == '' ? '' : ' â€¢ $reason'}';
+        }).toList();
+        _logs = logs.map(_formatActivity).toList();
+        if (snapshot.status['status'] != null) {
+          _cameraStatus = snapshot.status['status'] == 'waiting_for_camera_input'
+              ? 'Waiting for camera input'
+              : snapshot.status['status'].toString();
+        }
+        if (snapshot.zones.isNotEmpty || logs.isNotEmpty || snapshot.energy.isNotEmpty) {
+          _connection = 'Live data received';
+        }
+      });
+    } catch (_) {
+      // Firebase remains the preferred live feed; the fallback is best effort.
+    } finally {
+      _sessionSnapshotInFlight = false;
     }
   }
 
@@ -77,6 +216,9 @@ class _DashboardPageState extends State<DashboardPage> {
     _modeSub?.cancel();
     _energySub?.cancel();
     _logSub?.cancel();
+    _occupancyStatusSub?.cancel();
+    _previewTimer.cancel();
+    _ratedWattsController.dispose();
     super.dispose();
   }
 
@@ -94,7 +236,9 @@ class _DashboardPageState extends State<DashboardPage> {
             : 'Live data received';
       });
     }, onError: (_) => _markUnavailable());
-    _applianceSub = _rootRef!.child('appliances').onValue.listen((event) {
+    // ESP32 state is physical classroom state and deliberately survives a
+    // browser demo-session refresh.
+    _applianceSub = FirebaseDatabase.instance.ref('ATOM/classroom1/appliances').onValue.listen((event) {
       final states = <String, String>{};
       final raw = event.snapshot.value;
       if (raw is Map) {
@@ -115,7 +259,8 @@ class _DashboardPageState extends State<DashboardPage> {
         if (states.isNotEmpty) _connection = 'Live data received';
       });
     }, onError: (_) => _markUnavailable());
-    _modeSub = _rootRef!.child('mode').onValue.listen((event) {
+    // Mode is a classroom-wide control, not a per-session telemetry value.
+    _modeSub = FirebaseDatabase.instance.ref('ATOM/classroom1/mode').onValue.listen((event) {
       if (!mounted) return;
       setState(() {
         _mode = event.snapshot.value?.toString();
@@ -124,22 +269,51 @@ class _DashboardPageState extends State<DashboardPage> {
     }, onError: (_) => _markUnavailable());
     _energySub = _rootRef!.child('energy').onValue.listen((event) {
       if (!mounted) return;
+      final raw = event.snapshot.value;
+      final model = <String, Object?>{};
+      if (raw is Map && raw['led1'] is Map) {
+        (raw['led1'] as Map).forEach((key, value) => model[key.toString()] = value);
+      }
       setState(() {
-        _energy = parseEnergy(event.snapshot.value);
-        if (_energy.isAvailable) _connection = 'Live data received';
+        _energy = parseEnergy(raw);
+        _energyModel = model;
+        final ratedWatts = model['rated_watts'];
+        if (ratedWatts != null) _ratedWattsController.text = ratedWatts.toString();
+        if (_energy.isAvailable || model.isNotEmpty) _connection = 'Live data received';
       });
     }, onError: (_) => _markUnavailable());
-    _logSub = _rootRef!.child('decision_logs').onValue.listen((event) {
+    _logSub = _rootRef!.child('activity_logs').onValue.listen((event) {
       final raw = event.snapshot.value;
-      final entries = raw is List
-          ? raw.whereType<Object?>().map((item) => item.toString()).toList()
-          : raw is Map
-          ? raw.values.map((item) => item.toString()).toList()
-          : <String>[];
+      final events = raw is Map
+          ? raw.values.whereType<Map>().map((item) => Map<String, Object?>.from(item)).toList()
+          : <Map<String, Object?>>[];
+      events.sort((a, b) => (b['at']?.toString() ?? '').compareTo(a['at']?.toString() ?? ''));
+      final entries = events.map((event) {
+        final reason = event['reason'] ?? event['status'] ?? event['state'] ?? '';
+        return '${event['at'] ?? ''} • ${event['kind'] ?? 'event'}${reason == '' ? '' : ' • $reason'}';
+      }).toList();
+      final cleanEntries = entries.isEmpty ? <String>[] : events.map(_formatActivity).toList();
       if (!mounted) return;
       setState(() {
-        _logs = entries;
-        if (entries.isNotEmpty) _connection = 'Live data received';
+        _logs = cleanEntries;
+        if (cleanEntries.isNotEmpty) _connection = 'Live data received';
+      });
+    }, onError: (_) => _markUnavailable());
+    _occupancyStatusSub = _rootRef!.child('occupancy_status').onValue.listen((event) {
+      final raw = event.snapshot.value;
+      final status = <String, Object?>{};
+      if (raw is Map) {
+        raw.forEach((key, value) => status[key.toString()] = value);
+      }
+      if (!mounted) return;
+      setState(() {
+        _occupancyStatus = status;
+        if (status['status'] != null) {
+          _cameraStatus = status['status'] == 'waiting_for_camera_input'
+              ? 'Waiting for camera input'
+              : status['status'].toString();
+          _connection = 'Live data received';
+        }
       });
     }, onError: (_) => _markUnavailable());
   }
@@ -149,41 +323,44 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   Future<void> _sendLedCommand(String id, bool turnOn) async {
+    final requestedState = turnOn ? 'on' : 'off';
+    setState(() {
+      _pending[id] = true;
+      _desiredStates[id] = requestedState;
+    });
     try {
       final response = await http.post(
-        Uri.parse('http://127.0.0.1:8000/api/command'),
-        headers: const {
-          'Content-Type': 'application/json',
-          'x-api-key': 'CHANGE_ME',
-        },
-        body: jsonEncode({'appliance_id': id, 'state': turnOn ? 'on' : 'off'}),
+        Uri.parse('$_backendBase/api/command'),
+        headers: _sessionHeaders(json: true),
+        body: jsonEncode({'appliance_id': id, 'state': requestedState}),
       );
       if (!mounted) return;
       if (response.statusCode == 200) {
-        setState(() {
-          _pending[id] = true;
-          _desiredStates[id] = turnOn ? 'on' : 'off';
-        });
-        _message('${turnOn ? 'Turn-on' : 'Turn-off'} request sent for $id');
+        _message('${turnOn ? 'Turn-on' : 'Turn-off'} request is pending ESP32 acknowledgement');
       } else {
+        setState(() => _pending.remove(id));
         _message(
-          'Command service rejected the request (${response.statusCode})',
+          'Command rejected (${response.statusCode}): ${response.body}',
         );
       }
     } catch (_) {
+      if (mounted) setState(() => _pending.remove(id));
       if (mounted) _message('Command service is unavailable');
     }
   }
 
   Future<void> _setMode(String mode) async {
-    final root = _rootRef;
-    if (root == null) {
-      return _message('Automation mode is unavailable until Firebase connects');
-    }
     try {
-      await root.child('mode').set(mode);
+      final response = await http.post(
+        Uri.parse('$_backendBase/mode'),
+        headers: _sessionHeaders(json: true),
+        body: jsonEncode({'mode': mode}),
+      );
+      if (response.statusCode != 200) throw Exception(response.body);
+      if (mounted) setState(() => _mode = mode);
+      _message('Mode set to ${_modeLabels[mode]}.');
     } catch (_) {
-      if (mounted) _message('Could not update automation mode');
+      if (mounted) _message('Could not update automation mode. Start Flutter with ATOM_API_KEY.');
     }
   }
 
@@ -192,6 +369,77 @@ class _DashboardPageState extends State<DashboardPage> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(text), behavior: SnackBarBehavior.floating),
     );
+  }
+
+  Future<void> _uploadAndStartVideo() async {
+    final selection = await pickVideoForUpload();
+    if (selection == null) {
+      _message('Choose an MP4 video to upload.');
+      return;
+    }
+    setState(() => _cameraRequestInFlight = true);
+    try {
+      final response = await http.post(
+        Uri.parse('$_backendBase/api/camera/upload'),
+        headers: {
+          'Content-Type': 'video/mp4',
+          ..._sessionHeaders(),
+          'x-file-name': selection.name,
+        },
+        body: selection.bytes,
+      );
+      if (response.statusCode != 200) {
+        throw Exception('Upload rejected (${response.statusCode})');
+      }
+      if (!mounted) return;
+      final upload = jsonDecode(response.body) as Map<String, dynamic>;
+      setState(() => _uploadedReady = true);
+      _message('Uploaded ${upload['source']} (${upload['bytes']} bytes). Press Start to begin detection.');
+    } catch (error) {
+      if (mounted) _message('Could not upload the selected MP4: $error');
+    } finally {
+      if (mounted) setState(() => _cameraRequestInFlight = false);
+    }
+  }
+
+  Future<void> _startCamera() async {
+    if (_cameraRequestInFlight && _cameraStatus == 'starting') return;
+    setState(() => _cameraRequestInFlight = true);
+    try {
+      final response = await http.post(
+        Uri.parse('$_backendBase/api/camera/start'),
+        headers: _sessionHeaders(json: true),
+        body: jsonEncode({'source': _selectedVideoSource}),
+      );
+      if (response.statusCode != 200) {
+        throw Exception('Start rejected (${response.statusCode})');
+      }
+      if (!mounted) return;
+      setState(() {
+        _cameraStatus = 'starting';
+        _streamVersion++;
+      });
+    } catch (_) {
+      if (mounted) _message('Detection could not start. Upload a video first.');
+    } finally {
+      if (mounted) setState(() => _cameraRequestInFlight = false);
+    }
+  }
+
+  Future<void> _stopCamera() async {
+    setState(() => _cameraRequestInFlight = true);
+    try {
+      final response = await http.post(
+        Uri.parse('$_backendBase/api/camera/stop'),
+        headers: _sessionHeaders(),
+      );
+      if (response.statusCode != 200) throw Exception('Stop rejected');
+      if (mounted) setState(() => _cameraStatus = 'stopped');
+    } catch (_) {
+      if (mounted) _message('Detection service is unavailable.');
+    } finally {
+      if (mounted) setState(() => _cameraRequestInFlight = false);
+    }
   }
 
   @override
@@ -372,7 +620,6 @@ class _DashboardPageState extends State<DashboardPage> {
     DashboardNavigation.overview => _overview(),
     DashboardNavigation.monitoring => _monitoring(),
     DashboardNavigation.appliances => _appliancePage(),
-    DashboardNavigation.automation => _automation(),
     DashboardNavigation.energy => _energyPage(),
     DashboardNavigation.logs => _logsPage(),
     DashboardNavigation.settings => _settings(),
@@ -403,13 +650,13 @@ class _DashboardPageState extends State<DashboardPage> {
             _good,
           ),
           _metric(
-            'Energy reading',
-            _energy.isAvailable
-                ? '${_energy.value!.toStringAsFixed(2)} kWh'
+            'Modeled LED energy',
+            _modeledWh != null
+                ? '${_modeledWh!.toStringAsFixed(3)} Wh'
                 : 'N/A',
-            _energy.isAvailable
-                ? 'Latest reported reading'
-                : 'No energy meter reading',
+            _modeledWh != null
+                ? 'Estimated LED 1 run time'
+                : 'Set rated watts to begin',
             Icons.bolt_rounded,
             _warning,
           ),
@@ -433,7 +680,11 @@ class _DashboardPageState extends State<DashboardPage> {
     'Classroom Monitoring',
     'Zone-level presence appears only after a sensor reports it.',
     [
+      _videoControlPanel(),
+      const SizedBox(height: 18),
       _occupancyPanel(),
+      const SizedBox(height: 18),
+      _virtualLightsPanel(),
       const SizedBox(height: 18),
       _panel(
         'Zone detail',
@@ -479,6 +730,141 @@ class _DashboardPageState extends State<DashboardPage> {
     ],
   );
 
+  Widget _videoControlPanel() => _panel(
+    'Video source',
+    Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: DropdownButtonFormField<String>(
+                initialValue: _selectedVideoSource,
+                dropdownColor: _raised,
+                style: const TextStyle(color: _ink, fontWeight: FontWeight.w700),
+                decoration: const InputDecoration(
+                  labelText: 'Source',
+                  labelStyle: TextStyle(color: _muted),
+                ),
+                items: const [
+                  DropdownMenuItem(value: 'uploaded', child: Text('Uploaded video')),
+                  DropdownMenuItem(value: '0', child: Text('Laptop camera')),
+                ],
+                onChanged: _cameraRequestInFlight
+                    ? null
+                    : (value) => value == null
+                        ? null
+                        : setState(() => _selectedVideoSource = value),
+              ),
+            ),
+            const SizedBox(width: 12),
+            OutlinedButton.icon(
+              onPressed: _cameraRequestInFlight || _selectedVideoSource != 'uploaded'
+                  ? null
+                  : _uploadAndStartVideo,
+              icon: const Icon(Icons.upload_file_rounded),
+              label: const Text('Upload MP4'),
+            ),
+            const SizedBox(width: 8),
+            FilledButton.icon(
+              onPressed: _cameraRequestInFlight || (_selectedVideoSource == 'uploaded' && !_uploadedReady) ? null : _startCamera,
+              icon: const Icon(Icons.play_arrow_rounded),
+              label: const Text('Start'),
+            ),
+            const SizedBox(width: 8),
+            TextButton.icon(
+              onPressed: _cameraRequestInFlight ? null : _stopCamera,
+              icon: const Icon(Icons.stop_circle_outlined),
+              label: const Text('Stop'),
+            ),
+          ],
+        ),
+        const SizedBox(height: 14),
+        Text(
+          'Status: $_cameraStatus${_occupancyStatus['source'] == null ? '' : ' • ${_occupancyStatus['source']}'}',
+          style: const TextStyle(color: _muted, fontSize: 12),
+        ),
+        const SizedBox(height: 14),
+        AspectRatio(
+          aspectRatio: 16 / 9,
+          child: Container(
+            clipBehavior: Clip.antiAlias,
+            decoration: BoxDecoration(
+              color: _canvas,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: _line),
+            ),
+            child: Image.network(
+              '$_backendBase/api/camera/frame.jpg?v=$_streamVersion',
+              fit: BoxFit.cover,
+              errorBuilder: (_, _, _) => const Center(
+                child: Text('Start detection to view real annotated frames.', style: TextStyle(color: _muted)),
+              ),
+              loadingBuilder: (context, child, progress) => progress == null
+                  ? child
+                  : const Center(child: CircularProgressIndicator(color: _cyan)),
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        const Text(
+          'The overlay uses the calibrated classroom seating polygons and real YOLO person detections.',
+          style: TextStyle(color: _muted, fontSize: 11),
+        ),
+      ],
+    ),
+    trailing: _small(_cameraStatus, _cameraStatus == 'running' ? _good : _warning),
+  );
+
+  Widget _virtualLightsPanel() => _panel(
+    'Virtual light indicators only',
+    Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'These are on-screen occupancy indicators. They do not send MQTT commands or control relays.',
+          style: TextStyle(color: _muted, fontSize: 12),
+        ),
+        const SizedBox(height: 14),
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: 9,
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 3,
+            childAspectRatio: 2.5,
+            mainAxisSpacing: 8,
+            crossAxisSpacing: 8,
+          ),
+          itemBuilder: (context, index) {
+            final zone = index + 1;
+            final reported = _zones.containsKey('zone$zone');
+            final on = (_zones['zone$zone'] ?? 0) > 0;
+            return Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              decoration: BoxDecoration(
+                color: (reported && on ? _good : _raised).withValues(alpha: reported && on ? .14 : 1),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: reported && on ? _good : _line),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.lightbulb_outline_rounded, color: reported && on ? _good : _muted, size: 18),
+                  const SizedBox(width: 7),
+                  Text(
+                    'Z$zone ${reported ? (on ? 'ON' : 'OFF') : 'N/A'}',
+                    style: TextStyle(color: reported && on ? _good : _muted, fontWeight: FontWeight.w800),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+      ],
+    ),
+    trailing: _small('No relay control', _warning),
+  );
+
   Widget _appliancePage() {
     final ids = <String>{'led1', ..._appliances.keys}.toList()..sort();
     return _screen(
@@ -499,30 +885,25 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
-  Widget _automation() => _screen(
-    'Automation Rules',
-    'Control the operating mode from Firebase; rule details appear if the system publishes them.',
-    [
-      _panel(
-        'Operating mode',
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _modePicker(),
-            const SizedBox(height: 18),
-            _empty(
-              'Rule definitions unavailable',
-              'No automation-rule feed is currently published for this classroom.',
-            ),
-          ],
-        ),
-      ),
-    ],
-  );
+  Future<void> _saveRatedWatts() async {
+    final watts = double.tryParse(_ratedWattsController.text);
+    if (watts == null || watts <= 0) return _message('Enter the LED’s rated watts from its label or datasheet.');
+    try {
+      final response = await http.put(
+        Uri.parse('$_backendBase/api/energy/led1/rated-watts'),
+        headers: _sessionHeaders(json: true),
+        body: jsonEncode({'rated_watts': watts}),
+      );
+      if (response.statusCode != 200) throw Exception(response.body);
+      _message('Rated watts saved; future consumption is modeled from LED ON time.');
+    } catch (_) {
+      _message('Could not save rated watts. Start Flutter with ATOM_API_KEY.');
+    }
+  }
 
   Widget _energyPage() => _screen(
     'Energy Analytics',
-    'Energy is shown only from the latest reported meter reading; no usage history is inferred.',
+    'LED 1 estimate from automation run time and confirmed switch state. It is not a meter reading.',
     [
       _panel(
         'Latest reading',
@@ -542,8 +923,8 @@ class _DashboardPageState extends State<DashboardPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  _energy.isAvailable
-                      ? '${_energy.value!.toStringAsFixed(2)} kWh'
+                  _modeledWh != null
+                      ? '${_modeledWh!.toStringAsFixed(4)} Wh'
                       : 'N/A',
                   style: const TextStyle(
                     color: _ink,
@@ -552,34 +933,53 @@ class _DashboardPageState extends State<DashboardPage> {
                   ),
                 ),
                 Text(
-                  _energy.isAvailable
-                      ? 'Current value reported by Firebase'
-                      : 'No energy meter reading',
+                  _energyModel['modeled_state'] == 'on'
+                      ? 'Automation estimate is running'
+                      : 'Modeled consumption (not measured)',
                   style: const TextStyle(color: _muted),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  _modeledRunLabel,
+                  style: const TextStyle(color: _cyan, fontSize: 12, fontWeight: FontWeight.w700),
                 ),
               ],
             ),
           ],
         ),
         trailing: _small(
-          _energy.isAvailable ? 'Live reading' : 'No reading',
-          _energy.isAvailable ? _good : _warning,
+          _energyModel['modeled_available'] == true ? 'Modeled' : 'Needs watts',
+          _energyModel['modeled_available'] == true ? _good : _warning,
         ),
       ),
       const SizedBox(height: 18),
       _panel(
-        'Usage history',
-        _empty(
-          'History unavailable',
-          'The current data source provides no timestamped energy history to chart.',
+        'LED 1 model settings',
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Enter the LED’s rated watts. Until then consumption remains N/A.', style: TextStyle(color: _muted, fontSize: 12)),
+            const SizedBox(height: 10),
+            SizedBox(
+              width: 220,
+              child: TextField(
+                controller: _ratedWattsController,
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                style: const TextStyle(color: _ink),
+                decoration: const InputDecoration(labelText: 'Rated watts', labelStyle: TextStyle(color: _muted)),
+              ),
+            ),
+            const SizedBox(height: 10),
+            FilledButton(onPressed: _saveRatedWatts, child: const Text('Save rated watts')),
+          ],
         ),
       ),
     ],
   );
 
   Widget _logsPage() => _screen(
-    'Activity Logs',
-    'Latest ExplainAI decisions and activity published to Firebase.',
+    'Activity',
+    'Events from this demo session, newest first.',
     [_activityPanel(null)],
   );
 
@@ -910,12 +1310,11 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   Widget _modePicker({bool compact = false}) {
-    const modes = ['Automatic', 'Human Override', 'Hybrid'];
     return SizedBox(
       width: compact ? double.infinity : 280,
       child: DropdownButtonFormField<String>(
         key: ValueKey<String?>(_mode),
-        initialValue: modes.contains(_mode) ? _mode : null,
+        initialValue: _modeLabels.containsKey(_mode) ? _mode : null,
         dropdownColor: _raised,
         style: const TextStyle(
           color: _ink,
@@ -937,8 +1336,8 @@ class _DashboardPageState extends State<DashboardPage> {
           ),
         ),
         hint: const Text('Mode unavailable', style: TextStyle(color: _muted)),
-        items: modes
-            .map((mode) => DropdownMenuItem(value: mode, child: Text(mode)))
+        items: _modeLabels.entries
+            .map((entry) => DropdownMenuItem(value: entry.key, child: Text(entry.value)))
             .toList(),
         onChanged: _rootRef == null
             ? null
@@ -954,7 +1353,7 @@ class _DashboardPageState extends State<DashboardPage> {
       entries.isEmpty
           ? _empty(
               'No activity logs available',
-              'ExplainAI decisions will appear here when they are published.',
+              'Upload a video, start detection, or change LED state to create an event.',
             )
           : Column(
               children: entries

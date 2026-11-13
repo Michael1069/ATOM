@@ -13,10 +13,15 @@ dedicated nodes below `ATOM/classroom1`:
 occupancy/
   zone1 ... zone9  # integer counts, row-major 3x3 map (Flutter's existing contract)
 occupancy_status/
-  status           # starting, running, live, stopped, or error
-  source           # webcam:0, a local path, or an MJPEG URL
+  status           # starting, running, live, completed, stopped, or error
+  source           # e.g. uploaded:classroom_demo.mp4
   detected_at      # ISO-8601 UTC time of the latest analysed frame
+  timestamp        # duplicate timestamp for dashboard consumers
   total            # sum of the nine zones
+  model            # checkpoint used for this real inference
+  calibration      # perspective map name, when configured
+virtual_zone_lights/
+  zone1 ... zone9  # virtual on/off display state only; never a relay command
 ```
 
 Each person is assigned once using the bottom-center point of its bounding
@@ -37,6 +42,22 @@ cd C:\ATOM\atom_backend
 
 The first detection start downloads the pinned nano model (`yolo26n.pt`) if it
 is missing. It is ignored by Git because it is a generated runtime asset.
+
+### Current uploaded-video demo
+
+The supplied classroom video is stored as `test_videos/classroom_demo.mp4`.
+It runs the installed `yolo26n.pt` checkpoint—**not** YOLOv8n—and reports that
+exact model name to Firebase. Its nine zones use the
+`classroom_demo_perspective_v1` polygons, calibrated to the three desk columns,
+their perspective, and the front/middle/rear seating bands. Board space and
+walkways are intentionally outside every zone. Counts remain numerical YOLO
+person detections, not manually supplied ground truth.
+
+The Flutter web dashboard posts MP4 bytes to `/api/camera/upload`, starts the
+source at `/api/camera/start`, and renders actual annotated frames from
+`/api/camera/stream`. Uploaded files are sampled at three real inferences per
+second of video so a short 30 FPS clip reaches the `completed` state promptly;
+no values are interpolated between detections.
 
 ## Start the backend
 

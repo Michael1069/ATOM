@@ -1,14 +1,17 @@
-from datetime import datetime, timezone
 import asyncio
 import json
 import threading
+import os
+from collections.abc import Callable
+from typing import Any
 import paho.mqtt.client as mqtt
 
 class MQTTClient:
-    def __init__(self, broker, port):
+    def __init__(self, broker, port, *, client_factory=None, connect_timeout_seconds=3):
         self.broker = broker
         self.port = port
-        self.client = mqtt.Client()
+        self.client = (client_factory or mqtt.Client)()
+        self.connect_timeout_seconds = connect_timeout_seconds
 
         # MQTT authentication
         mqtt_user = os.getenv("MQTT_USER", "")
@@ -18,56 +21,69 @@ class MQTTClient:
             self.client.username_pw_set(mqtt_user, mqtt_password)
 
         self.connected = False
+        self._connect_started = False
+        self._connected_event = threading.Event()
+        self._lock = threading.Lock()
         self.client.on_connect = self._on_connect
+        self.client.on_disconnect = self._on_disconnect
         self.client.on_message = self._on_message
-        self.loop_thread = None
-        # Store callbacks for received acknowledgments
-        self.ack_callbacks = {}
+        self._state_handler = None
+        if hasattr(self.client, 'reconnect_delay_set'):
+            self.client.reconnect_delay_set(min_delay=1, max_delay=15)
 
-    def _on_connect(self, client, userdata, flags, rc):
+    def set_state_handler(self, handler):
+        self._state_handler = handler
+
+    def _on_connect(self, client, userdata, flags, rc, *_extra):
         if rc == 0:
-            # Subscribe to acknowledgment topics for all appliances
             client.subscribe('atom/appliance/+/state')
             self.connected = True
+            self._connected_event.set()
         else:
-            print(f"MQTT connection failed with code {rc}")
+            self.connected = False
+            self._connected_event.clear()
 
     def _on_message(self, client, userdata, msg):
-        # Expected payload: {"state": "on"/"off"}
         try:
             payload = json.loads(msg.payload.decode())
             appliance_id = msg.topic.split('/')[-2]
-            # Update Firebase with reported state
-            from firebase_admin import db
-            db.reference(f'ATOM/classroom1/appliances/{appliance_id}').set({
-                'state': payload.get('state'),
-                'timestamp': datetime.now(timezone.utc).isoformat()
-            })
-        except Exception as e:
-            print(f"MQTT message handling error: {e}")
+            if payload.get('state') in {'on', 'off'} and self._state_handler:
+                self._state_handler(appliance_id, payload)
+        except (UnicodeDecodeError, json.JSONDecodeError, IndexError, AttributeError):
+            return
+
+    def _on_disconnect(self, _client, _userdata, _rc, *_extra):
+        self.connected = False
+        self._connected_event.clear()
 
     async def connect(self):
-        # Run the network loop in a separate thread
-        def _run():
-            self.client.connect(self.broker, self.port, 60)
-            self.client.loop_forever()
-        self.loop_thread = threading.Thread(target=_run, daemon=True)
-        self.loop_thread.start()
-        # Wait for connection (polling)
-        while not self.connected:
-            await asyncio.sleep(0.1)
+        if self.connected:
+            return
+        with self._lock:
+            if not self._connect_started:
+                self._connect_started = True
+                try:
+                    self.client.connect_async(self.broker, self.port, 60)
+                    self.client.loop_start()
+                except Exception as exc:
+                    self._connect_started = False
+                    raise RuntimeError(f'Cannot start MQTT connection: {exc}') from exc
+        connected = await asyncio.to_thread(
+            self._connected_event.wait, self.connect_timeout_seconds
+        )
+        if not connected:
+            raise RuntimeError('MQTT broker did not become available before the command timeout')
 
     async def publish(self, topic, payload):
-        # Ensure connection established
-        if not self.connected:
-            await self.connect()
-        # Publish asynchronously
-        def _pub():
-            self.client.publish(topic, payload)
-        await asyncio.get_event_loop().run_in_executor(None, _pub)
+        await self.connect()
+        # QoS 0 avoids a queued stale command being replayed after reconnect.
+        # Device-state acknowledgement, not this call, remains the proof of actuation.
+        result = self.client.publish(topic, payload, qos=0)
+        if getattr(result, 'rc', mqtt.MQTT_ERR_SUCCESS) != mqtt.MQTT_ERR_SUCCESS:
+            raise RuntimeError('MQTT broker rejected the command')
+        return 'pending_ack'
 
 # Global instance (will be imported by backend modules)
-import os
 from dotenv import load_dotenv
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '.env'))
 MQTT_BROKER = os.getenv('MQTT_BROKER', 'localhost')

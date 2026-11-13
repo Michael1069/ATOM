@@ -31,7 +31,7 @@ PubSubClient client(espClient);
 void connectToWiFi();
 void connectToMQTT();
 void mqttCallback(char* topic, byte* payload, unsigned int length);
-void publishState(const char* state);
+void publishState(const char* state, const char* commandId = nullptr);
 
 void setup() {
   Serial.begin(115200);
@@ -56,6 +56,7 @@ void loop() {
   if (!client.connected()) {
     Serial.println("MQTT disconnected – reconnecting...");
     connectToMQTT();
+    publishState(digitalRead(LED_PIN) == HIGH ? "on" : "off");
   }
   client.loop();
 }
@@ -133,6 +134,7 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
   }
 
   const char* state = doc["state"];
+  const char* commandId = doc["command_id"] | "";
   if (!state) {
     Serial.println("No \"state\" field – ignoring");
     return;
@@ -143,25 +145,26 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
 
   if (strcmp(state, "on") == 0) {
     digitalWrite(LED_PIN, HIGH);
-    publishState("on");
+    publishState("on", commandId);
   } else if (strcmp(state, "off") == 0) {
     digitalWrite(LED_PIN, LOW);
-    publishState("off");
+    publishState("off", commandId);
   } else {
     Serial.println("Unknown state value – ignoring");
   }
 }
 
-void publishState(const char* state) {
+void publishState(const char* state, const char* commandId) {
   // Build JSON payload {"state":"on/off","timestamp":<ISO‑8601 UTC>}
   StaticJsonDocument<200> doc;
   doc["state"] = state;
   // Get UTC timestamp in ISO‑8601 format
-  time_t now = time(nullptr);
-  struct tm* utc = gmtime(&now);
-  char ts[32];
-  strftime(ts, sizeof(ts), "%Y-%m-%dT%H:%M:%SZ", utc);
-  doc["timestamp"] = ts;
+  // The backend uses broker receipt time because this USB demo does not set
+  // the ESP32 clock. Uptime and command ID make the acknowledgement traceable.
+  doc["uptime_ms"] = millis();
+  if (commandId != nullptr && commandId[0] != '\0') {
+    doc["command_id"] = commandId;
+  }
 
   char buffer[256];
   size_t n = serializeJson(doc, buffer);

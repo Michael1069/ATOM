@@ -10,6 +10,9 @@
 **/yolo26n.pt
 **/bus.jpg
 
+# ESP32 private credentials live only in an ignored local config.h.
+atom_firmware/led_firmware/config.h
+
 # Generated Flutter and platform builds
 **/.dart_tool/
 **/build/

@@ -1,0 +1,452 @@
+INFO:     Started server process [20532]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+Exception in thread Thread-1 (_run):
+Traceback (most recent call last):
+  File "C:\Users\HP\AppData\Local\Programs\Python\Python313\Lib\threading.py", line 1044, in _bootstrap_inner
+    self.run()
+    ~~~~~~~~^^
+  File "C:\Users\HP\AppData\Local\Programs\Python\Python313\Lib\threading.py", line 995, in run
+    self._target(*self._args, **self._kwargs)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\ATOM\atom_backend\mqtt_client.py", line 52, in _run
+    self.client.connect(self.broker, self.port, 60)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\ATOM\atom_backend\venv\Lib\site-packages\paho\mqtt\client.py", line 1425, in connect
+    return self.reconnect()
+           ~~~~~~~~~~~~~~^^
+  File "C:\ATOM\atom_backend\venv\Lib\site-packages\paho\mqtt\client.py", line 1588, in reconnect
+    self._sock = self._create_socket()
+                 ~~~~~~~~~~~~~~~~~~~^^
+  File "C:\ATOM\atom_backend\venv\Lib\site-packages\paho\mqtt\client.py", line 4564, in _create_socket
+    sock = self._create_socket_connection()
+  File "C:\ATOM\atom_backend\venv\Lib\site-packages\paho\mqtt\client.py", line 4595, in _create_socket_connection
+    return socket.create_connection(addr, timeout=self._connect_timeout, source_address=source)
+           ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\AppData\Local\Programs\Python\Python313\Lib\socket.py", line 868, in create_connection
+    raise exceptions[0]
+  File "C:\Users\HP\AppData\Local\Programs\Python\Python313\Lib\socket.py", line 853, in create_connection
+    sock.connect(sa)
+    ~~~~~~~~~~~~^^^^
+ConnectionRefusedError: [WinError 10061] No connection could be made because the target machine actively refused it
+Exception in thread Thread-6 (_run):
+Traceback (most recent call last):
+  File "C:\Users\HP\AppData\Local\Programs\Python\Python313\Lib\threading.py", line 1044, in _bootstrap_inner
+    self.run()
+    ~~~~~~~~^^
+  File "C:\Users\HP\AppData\Local\Programs\Python\Python313\Lib\threading.py", line 995, in run
+    self._target(*self._args, **self._kwargs)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\ATOM\atom_backend\mqtt_client.py", line 52, in _run
+    self.client.connect(self.broker, self.port, 60)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\ATOM\atom_backend\venv\Lib\site-packages\paho\mqtt\client.py", line 1425, in connect
+    return self.reconnect()
+           ~~~~~~~~~~~~~~^^
+  File "C:\ATOM\atom_backend\venv\Lib\site-packages\paho\mqtt\client.py", line 1588, in reconnect
+    self._sock = self._create_socket()
+                 ~~~~~~~~~~~~~~~~~~~^^
+  File "C:\ATOM\atom_backend\venv\Lib\site-packages\paho\mqtt\client.py", line 4564, in _create_socket
+    sock = self._create_socket_connection()
+  File "C:\ATOM\atom_backend\venv\Lib\site-packages\paho\mqtt\client.py", line 4595, in _create_socket_connection
+    return socket.create_connection(addr, timeout=self._connect_timeout, source_address=source)
+           ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\AppData\Local\Programs\Python\Python313\Lib\socket.py", line 868, in create_connection
+    raise exceptions[0]
+  File "C:\Users\HP\AppData\Local\Programs\Python\Python313\Lib\socket.py", line 853, in create_connection
+    sock.connect(sa)
+    ~~~~~~~~~~~~^^^^
+ConnectionRefusedError: [WinError 10061] No connection could be made because the target machine actively refused it
+Exception in thread Thread-7 (_run):
+Traceback (most recent call last):
+  File "C:\Users\HP\AppData\Local\Programs\Python\Python313\Lib\threading.py", line 1044, in _bootstrap_inner
+    self.run()
+    ~~~~~~~~^^
+  File "C:\Users\HP\AppData\Local\Programs\Python\Python313\Lib\threading.py", line 995, in run
+    self._target(*self._args, **self._kwargs)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\ATOM\atom_backend\mqtt_client.py", line 52, in _run
+    self.client.connect(self.broker, self.port, 60)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\ATOM\atom_backend\venv\Lib\site-packages\paho\mqtt\client.py", line 1425, in connect
+    return self.reconnect()
+           ~~~~~~~~~~~~~~^^
+  File "C:\ATOM\atom_backend\venv\Lib\site-packages\paho\mqtt\client.py", line 1588, in reconnect
+    self._sock = self._create_socket()
+                 ~~~~~~~~~~~~~~~~~~~^^
+  File "C:\ATOM\atom_backend\venv\Lib\site-packages\paho\mqtt\client.py", line 4564, in _create_socket
+    sock = self._create_socket_connection()
+  File "C:\ATOM\atom_backend\venv\Lib\site-packages\paho\mqtt\client.py", line 4595, in _create_socket_connection
+    return socket.create_connection(addr, timeout=self._connect_timeout, source_address=source)
+           ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\AppData\Local\Programs\Python\Python313\Lib\socket.py", line 868, in create_connection
+    raise exceptions[0]
+  File "C:\Users\HP\AppData\Local\Programs\Python\Python313\Lib\socket.py", line 853, in create_connection
+    sock.connect(sa)
+    ~~~~~~~~~~~~^^^^
+ConnectionRefusedError: [WinError 10061] No connection could be made because the target machine actively refused it
+Exception in thread Thread-8 (_run):
+Traceback (most recent call last):
+  File "C:\Users\HP\AppData\Local\Programs\Python\Python313\Lib\threading.py", line 1044, in _bootstrap_inner
+    self.run()
+    ~~~~~~~~^^
+  File "C:\Users\HP\AppData\Local\Programs\Python\Python313\Lib\threading.py", line 995, in run
+    self._target(*self._args, **self._kwargs)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\ATOM\atom_backend\mqtt_client.py", line 52, in _run
+    self.client.connect(self.broker, self.port, 60)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\ATOM\atom_backend\venv\Lib\site-packages\paho\mqtt\client.py", line 1425, in connect
+    return self.reconnect()
+           ~~~~~~~~~~~~~~^^
+  File "C:\ATOM\atom_backend\venv\Lib\site-packages\paho\mqtt\client.py", line 1588, in reconnect
+    self._sock = self._create_socket()
+                 ~~~~~~~~~~~~~~~~~~~^^
+  File "C:\ATOM\atom_backend\venv\Lib\site-packages\paho\mqtt\client.py", line 4564, in _create_socket
+    sock = self._create_socket_connection()
+  File "C:\ATOM\atom_backend\venv\Lib\site-packages\paho\mqtt\client.py", line 4595, in _create_socket_connection
+    return socket.create_connection(addr, timeout=self._connect_timeout, source_address=source)
+           ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\AppData\Local\Programs\Python\Python313\Lib\socket.py", line 868, in create_connection
+    raise exceptions[0]
+  File "C:\Users\HP\AppData\Local\Programs\Python\Python313\Lib\socket.py", line 853, in create_connection
+    sock.connect(sa)
+    ~~~~~~~~~~~~^^^^
+ConnectionRefusedError: [WinError 10061] No connection could be made because the target machine actively refused it
+Exception in thread Thread-9 (_run):
+Traceback (most recent call last):
+  File "C:\Users\HP\AppData\Local\Programs\Python\Python313\Lib\threading.py", line 1044, in _bootstrap_inner
+    self.run()
+    ~~~~~~~~^^
+  File "C:\Users\HP\AppData\Local\Programs\Python\Python313\Lib\threading.py", line 995, in run
+    self._target(*self._args, **self._kwargs)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\ATOM\atom_backend\mqtt_client.py", line 52, in _run
+    self.client.connect(self.broker, self.port, 60)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\ATOM\atom_backend\venv\Lib\site-packages\paho\mqtt\client.py", line 1425, in connect
+    return self.reconnect()
+           ~~~~~~~~~~~~~~^^
+  File "C:\ATOM\atom_backend\venv\Lib\site-packages\paho\mqtt\client.py", line 1588, in reconnect
+    self._sock = self._create_socket()
+                 ~~~~~~~~~~~~~~~~~~~^^
+  File "C:\ATOM\atom_backend\venv\Lib\site-packages\paho\mqtt\client.py", line 4564, in _create_socket
+    sock = self._create_socket_connection()
+  File "C:\ATOM\atom_backend\venv\Lib\site-packages\paho\mqtt\client.py", line 4595, in _create_socket_connection
+    return socket.create_connection(addr, timeout=self._connect_timeout, source_address=source)
+           ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\AppData\Local\Programs\Python\Python313\Lib\socket.py", line 868, in create_connection
+    raise exceptions[0]
+  File "C:\Users\HP\AppData\Local\Programs\Python\Python313\Lib\socket.py", line 853, in create_connection
+    sock.connect(sa)
+    ~~~~~~~~~~~~^^^^
+ConnectionRefusedError: [WinError 10061] No connection could be made because the target machine actively refused it
+Exception in thread Thread-10 (_run):
+Exception in thread Thread-11 (_run):
+Traceback (most recent call last):
+Exception in thread Thread-12 (_run):
+Traceback (most recent call last):
+  File "C:\Users\HP\AppData\Local\Programs\Python\Python313\Lib\threading.py", line 1044, in _bootstrap_inner
+    self.run()
+    ~~~~~~~~^^
+Traceback (most recent call last):
+  File "C:\Users\HP\AppData\Local\Programs\Python\Python313\Lib\threading.py", line 995, in run
+    self._target(*self._args, **self._kwargs)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\AppData\Local\Programs\Python\Python313\Lib\threading.py", line 1044, in _bootstrap_inner
+    self.run()
+    ~~~~~~~~^^
+  File "C:\ATOM\atom_backend\mqtt_client.py", line 52, in _run
+    self.client.connect(self.broker, self.port, 60)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\AppData\Local\Programs\Python\Python313\Lib\threading.py", line 995, in run
+    self._target(*self._args, **self._kwargs)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\ATOM\atom_backend\venv\Lib\site-packages\paho\mqtt\client.py", line 1425, in connect
+    return self.reconnect()
+           ~~~~~~~~~~~~~~^^
+  File "C:\ATOM\atom_backend\mqtt_client.py", line 52, in _run
+    self.client.connect(self.broker, self.port, 60)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\ATOM\atom_backend\venv\Lib\site-packages\paho\mqtt\client.py", line 1588, in reconnect
+    self._sock = self._create_socket()
+                 ~~~~~~~~~~~~~~~~~~~^^
+  File "C:\ATOM\atom_backend\venv\Lib\site-packages\paho\mqtt\client.py", line 1425, in connect
+    return self.reconnect()
+           ~~~~~~~~~~~~~~^^
+  File "C:\ATOM\atom_backend\venv\Lib\site-packages\paho\mqtt\client.py", line 4564, in _create_socket
+    sock = self._create_socket_connection()
+  File "C:\ATOM\atom_backend\venv\Lib\site-packages\paho\mqtt\client.py", line 1588, in reconnect
+    self._sock = self._create_socket()
+                 ~~~~~~~~~~~~~~~~~~~^^
+  File "C:\ATOM\atom_backend\venv\Lib\site-packages\paho\mqtt\client.py", line 4595, in _create_socket_connection
+    return socket.create_connection(addr, timeout=self._connect_timeout, source_address=source)
+           ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\ATOM\atom_backend\venv\Lib\site-packages\paho\mqtt\client.py", line 4564, in _create_socket
+    sock = self._create_socket_connection()
+  File "C:\Users\HP\AppData\Local\Programs\Python\Python313\Lib\socket.py", line 868, in create_connection
+    raise exceptions[0]
+  File "C:\Users\HP\AppData\Local\Programs\Python\Python313\Lib\socket.py", line 853, in create_connection
+    sock.connect(sa)
+    ~~~~~~~~~~~~^^^^
+ConnectionRefusedError: [WinError 10061] No connection could be made because the target machine actively refused it
+  File "C:\ATOM\atom_backend\venv\Lib\site-packages\paho\mqtt\client.py", line 4595, in _create_socket_connection
+    return socket.create_connection(addr, timeout=self._connect_timeout, source_address=source)
+           ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\AppData\Local\Programs\Python\Python313\Lib\threading.py", line 1044, in _bootstrap_inner
+    self.run()
+    ~~~~~~~~^^
+  File "C:\Users\HP\AppData\Local\Programs\Python\Python313\Lib\socket.py", line 868, in create_connection
+    raise exceptions[0]
+  File "C:\Users\HP\AppData\Local\Programs\Python\Python313\Lib\socket.py", line 853, in create_connection
+    sock.connect(sa)
+    ~~~~~~~~~~~~^^^^
+  File "C:\Users\HP\AppData\Local\Programs\Python\Python313\Lib\threading.py", line 995, in run
+    self._target(*self._args, **self._kwargs)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ConnectionRefusedError: [WinError 10061] No connection could be made because the target machine actively refused it
+  File "C:\ATOM\atom_backend\mqtt_client.py", line 52, in _run
+    self.client.connect(self.broker, self.port, 60)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\ATOM\atom_backend\venv\Lib\site-packages\paho\mqtt\client.py", line 1425, in connect
+    return self.reconnect()
+           ~~~~~~~~~~~~~~^^
+  File "C:\ATOM\atom_backend\venv\Lib\site-packages\paho\mqtt\client.py", line 1588, in reconnect
+    self._sock = self._create_socket()
+                 ~~~~~~~~~~~~~~~~~~~^^
+  File "C:\ATOM\atom_backend\venv\Lib\site-packages\paho\mqtt\client.py", line 4564, in _create_socket
+    sock = self._create_socket_connection()
+  File "C:\ATOM\atom_backend\venv\Lib\site-packages\paho\mqtt\client.py", line 4595, in _create_socket_connection
+    return socket.create_connection(addr, timeout=self._connect_timeout, source_address=source)
+           ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\AppData\Local\Programs\Python\Python313\Lib\socket.py", line 868, in create_connection
+    raise exceptions[0]
+  File "C:\Users\HP\AppData\Local\Programs\Python\Python313\Lib\socket.py", line 853, in create_connection
+    sock.connect(sa)
+    ~~~~~~~~~~~~^^^^
+ConnectionRefusedError: [WinError 10061] No connection could be made because the target machine actively refused it
+Exception in thread Thread-14 (_run):
+Traceback (most recent call last):
+  File "C:\Users\HP\AppData\Local\Programs\Python\Python313\Lib\threading.py", line 1044, in _bootstrap_inner
+    self.run()
+    ~~~~~~~~^^
+  File "C:\Users\HP\AppData\Local\Programs\Python\Python313\Lib\threading.py", line 995, in run
+    self._target(*self._args, **self._kwargs)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\ATOM\atom_backend\mqtt_client.py", line 52, in _run
+    self.client.connect(self.broker, self.port, 60)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\ATOM\atom_backend\venv\Lib\site-packages\paho\mqtt\client.py", line 1425, in connect
+    return self.reconnect()
+           ~~~~~~~~~~~~~~^^
+  File "C:\ATOM\atom_backend\venv\Lib\site-packages\paho\mqtt\client.py", line 1588, in reconnect
+    self._sock = self._create_socket()
+                 ~~~~~~~~~~~~~~~~~~~^^
+  File "C:\ATOM\atom_backend\venv\Lib\site-packages\paho\mqtt\client.py", line 4564, in _create_socket
+    sock = self._create_socket_connection()
+  File "C:\ATOM\atom_backend\venv\Lib\site-packages\paho\mqtt\client.py", line 4595, in _create_socket_connection
+    return socket.create_connection(addr, timeout=self._connect_timeout, source_address=source)
+           ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\AppData\Local\Programs\Python\Python313\Lib\socket.py", line 868, in create_connection
+    raise exceptions[0]
+  File "C:\Users\HP\AppData\Local\Programs\Python\Python313\Lib\socket.py", line 853, in create_connection
+    sock.connect(sa)
+    ~~~~~~~~~~~~^^^^
+ConnectionRefusedError: [WinError 10061] No connection could be made because the target machine actively refused it
+Exception in thread Thread-15 (_run):
+Traceback (most recent call last):
+  File "C:\Users\HP\AppData\Local\Programs\Python\Python313\Lib\threading.py", line 1044, in _bootstrap_inner
+    self.run()
+    ~~~~~~~~^^
+  File "C:\Users\HP\AppData\Local\Programs\Python\Python313\Lib\threading.py", line 995, in run
+    self._target(*self._args, **self._kwargs)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\ATOM\atom_backend\mqtt_client.py", line 52, in _run
+    self.client.connect(self.broker, self.port, 60)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\ATOM\atom_backend\venv\Lib\site-packages\paho\mqtt\client.py", line 1425, in connect
+    return self.reconnect()
+           ~~~~~~~~~~~~~~^^
+  File "C:\ATOM\atom_backend\venv\Lib\site-packages\paho\mqtt\client.py", line 1588, in reconnect
+    self._sock = self._create_socket()
+                 ~~~~~~~~~~~~~~~~~~~^^
+  File "C:\ATOM\atom_backend\venv\Lib\site-packages\paho\mqtt\client.py", line 4564, in _create_socket
+    sock = self._create_socket_connection()
+  File "C:\ATOM\atom_backend\venv\Lib\site-packages\paho\mqtt\client.py", line 4595, in _create_socket_connection
+    return socket.create_connection(addr, timeout=self._connect_timeout, source_address=source)
+           ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\AppData\Local\Programs\Python\Python313\Lib\socket.py", line 868, in create_connection
+    raise exceptions[0]
+  File "C:\Users\HP\AppData\Local\Programs\Python\Python313\Lib\socket.py", line 853, in create_connection
+    sock.connect(sa)
+    ~~~~~~~~~~~~^^^^
+ConnectionRefusedError: [WinError 10061] No connection could be made because the target machine actively refused it
+Exception in thread Thread-16 (_run):
+Traceback (most recent call last):
+  File "C:\Users\HP\AppData\Local\Programs\Python\Python313\Lib\threading.py", line 1044, in _bootstrap_inner
+    self.run()
+    ~~~~~~~~^^
+  File "C:\Users\HP\AppData\Local\Programs\Python\Python313\Lib\threading.py", line 995, in run
+    self._target(*self._args, **self._kwargs)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\ATOM\atom_backend\mqtt_client.py", line 52, in _run
+    self.client.connect(self.broker, self.port, 60)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\ATOM\atom_backend\venv\Lib\site-packages\paho\mqtt\client.py", line 1425, in connect
+    return self.reconnect()
+           ~~~~~~~~~~~~~~^^
+  File "C:\ATOM\atom_backend\venv\Lib\site-packages\paho\mqtt\client.py", line 1588, in reconnect
+    self._sock = self._create_socket()
+                 ~~~~~~~~~~~~~~~~~~~^^
+  File "C:\ATOM\atom_backend\venv\Lib\site-packages\paho\mqtt\client.py", line 4564, in _create_socket
+    sock = self._create_socket_connection()
+  File "C:\ATOM\atom_backend\venv\Lib\site-packages\paho\mqtt\client.py", line 4595, in _create_socket_connection
+    return socket.create_connection(addr, timeout=self._connect_timeout, source_address=source)
+           ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\AppData\Local\Programs\Python\Python313\Lib\socket.py", line 868, in create_connection
+    raise exceptions[0]
+  File "C:\Users\HP\AppData\Local\Programs\Python\Python313\Lib\socket.py", line 853, in create_connection
+    sock.connect(sa)
+    ~~~~~~~~~~~~^^^^
+ConnectionRefusedError: [WinError 10061] No connection could be made because the target machine actively refused it
+Exception in thread Thread-17 (_run):
+Traceback (most recent call last):
+  File "C:\Users\HP\AppData\Local\Programs\Python\Python313\Lib\threading.py", line 1044, in _bootstrap_inner
+    self.run()
+    ~~~~~~~~^^
+  File "C:\Users\HP\AppData\Local\Programs\Python\Python313\Lib\threading.py", line 995, in run
+    self._target(*self._args, **self._kwargs)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\ATOM\atom_backend\mqtt_client.py", line 52, in _run
+    self.client.connect(self.broker, self.port, 60)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\ATOM\atom_backend\venv\Lib\site-packages\paho\mqtt\client.py", line 1425, in connect
+    return self.reconnect()
+           ~~~~~~~~~~~~~~^^
+  File "C:\ATOM\atom_backend\venv\Lib\site-packages\paho\mqtt\client.py", line 1588, in reconnect
+    self._sock = self._create_socket()
+                 ~~~~~~~~~~~~~~~~~~~^^
+  File "C:\ATOM\atom_backend\venv\Lib\site-packages\paho\mqtt\client.py", line 4564, in _create_socket
+    sock = self._create_socket_connection()
+  File "C:\ATOM\atom_backend\venv\Lib\site-packages\paho\mqtt\client.py", line 4595, in _create_socket_connection
+    return socket.create_connection(addr, timeout=self._connect_timeout, source_address=source)
+           ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\AppData\Local\Programs\Python\Python313\Lib\socket.py", line 868, in create_connection
+    raise exceptions[0]
+  File "C:\Users\HP\AppData\Local\Programs\Python\Python313\Lib\socket.py", line 853, in create_connection
+    sock.connect(sa)
+    ~~~~~~~~~~~~^^^^
+ConnectionRefusedError: [WinError 10061] No connection could be made because the target machine actively refused it
+Exception in thread Thread-18 (_run):
+Traceback (most recent call last):
+  File "C:\Users\HP\AppData\Local\Programs\Python\Python313\Lib\threading.py", line 1044, in _bootstrap_inner
+    self.run()
+    ~~~~~~~~^^
+  File "C:\Users\HP\AppData\Local\Programs\Python\Python313\Lib\threading.py", line 995, in run
+    self._target(*self._args, **self._kwargs)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\ATOM\atom_backend\mqtt_client.py", line 52, in _run
+    self.client.connect(self.broker, self.port, 60)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\ATOM\atom_backend\venv\Lib\site-packages\paho\mqtt\client.py", line 1425, in connect
+    return self.reconnect()
+           ~~~~~~~~~~~~~~^^
+  File "C:\ATOM\atom_backend\venv\Lib\site-packages\paho\mqtt\client.py", line 1588, in reconnect
+    self._sock = self._create_socket()
+                 ~~~~~~~~~~~~~~~~~~~^^
+  File "C:\ATOM\atom_backend\venv\Lib\site-packages\paho\mqtt\client.py", line 4564, in _create_socket
+    sock = self._create_socket_connection()
+  File "C:\ATOM\atom_backend\venv\Lib\site-packages\paho\mqtt\client.py", line 4595, in _create_socket_connection
+    return socket.create_connection(addr, timeout=self._connect_timeout, source_address=source)
+           ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\AppData\Local\Programs\Python\Python313\Lib\socket.py", line 868, in create_connection
+    raise exceptions[0]
+  File "C:\Users\HP\AppData\Local\Programs\Python\Python313\Lib\socket.py", line 853, in create_connection
+    sock.connect(sa)
+    ~~~~~~~~~~~~^^^^
+ConnectionRefusedError: [WinError 10061] No connection could be made because the target machine actively refused it
+Exception in thread Thread-19 (_run):
+Traceback (most recent call last):
+  File "C:\Users\HP\AppData\Local\Programs\Python\Python313\Lib\threading.py", line 1044, in _bootstrap_inner
+    self.run()
+    ~~~~~~~~^^
+  File "C:\Users\HP\AppData\Local\Programs\Python\Python313\Lib\threading.py", line 995, in run
+    self._target(*self._args, **self._kwargs)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\ATOM\atom_backend\mqtt_client.py", line 52, in _run
+    self.client.connect(self.broker, self.port, 60)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\ATOM\atom_backend\venv\Lib\site-packages\paho\mqtt\client.py", line 1425, in connect
+    return self.reconnect()
+           ~~~~~~~~~~~~~~^^
+  File "C:\ATOM\atom_backend\venv\Lib\site-packages\paho\mqtt\client.py", line 1588, in reconnect
+    self._sock = self._create_socket()
+                 ~~~~~~~~~~~~~~~~~~~^^
+  File "C:\ATOM\atom_backend\venv\Lib\site-packages\paho\mqtt\client.py", line 4564, in _create_socket
+    sock = self._create_socket_connection()
+  File "C:\ATOM\atom_backend\venv\Lib\site-packages\paho\mqtt\client.py", line 4595, in _create_socket_connection
+    return socket.create_connection(addr, timeout=self._connect_timeout, source_address=source)
+           ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\AppData\Local\Programs\Python\Python313\Lib\socket.py", line 868, in create_connection
+    raise exceptions[0]
+  File "C:\Users\HP\AppData\Local\Programs\Python\Python313\Lib\socket.py", line 853, in create_connection
+    sock.connect(sa)
+    ~~~~~~~~~~~~^^^^
+ConnectionRefusedError: [WinError 10061] No connection could be made because the target machine actively refused it
+Exception in thread Thread-21 (_run):
+Traceback (most recent call last):
+  File "C:\Users\HP\AppData\Local\Programs\Python\Python313\Lib\threading.py", line 1044, in _bootstrap_inner
+    self.run()
+    ~~~~~~~~^^
+  File "C:\Users\HP\AppData\Local\Programs\Python\Python313\Lib\threading.py", line 995, in run
+    self._target(*self._args, **self._kwargs)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\ATOM\atom_backend\mqtt_client.py", line 52, in _run
+    self.client.connect(self.broker, self.port, 60)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\ATOM\atom_backend\venv\Lib\site-packages\paho\mqtt\client.py", line 1425, in connect
+    return self.reconnect()
+           ~~~~~~~~~~~~~~^^
+  File "C:\ATOM\atom_backend\venv\Lib\site-packages\paho\mqtt\client.py", line 1588, in reconnect
+    self._sock = self._create_socket()
+                 ~~~~~~~~~~~~~~~~~~~^^
+  File "C:\ATOM\atom_backend\venv\Lib\site-packages\paho\mqtt\client.py", line 4564, in _create_socket
+    sock = self._create_socket_connection()
+  File "C:\ATOM\atom_backend\venv\Lib\site-packages\paho\mqtt\client.py", line 4595, in _create_socket_connection
+    return socket.create_connection(addr, timeout=self._connect_timeout, source_address=source)
+           ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\AppData\Local\Programs\Python\Python313\Lib\socket.py", line 868, in create_connection
+    raise exceptions[0]
+  File "C:\Users\HP\AppData\Local\Programs\Python\Python313\Lib\socket.py", line 853, in create_connection
+    sock.connect(sa)
+    ~~~~~~~~~~~~^^^^
+ConnectionRefusedError: [WinError 10061] No connection could be made because the target machine actively refused it
+Exception in thread Thread-22 (_run):
+Traceback (most recent call last):
+  File "C:\Users\HP\AppData\Local\Programs\Python\Python313\Lib\threading.py", line 1044, in _bootstrap_inner
+    self.run()
+    ~~~~~~~~^^
+  File "C:\Users\HP\AppData\Local\Programs\Python\Python313\Lib\threading.py", line 995, in run
+    self._target(*self._args, **self._kwargs)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\ATOM\atom_backend\mqtt_client.py", line 52, in _run
+    self.client.connect(self.broker, self.port, 60)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\ATOM\atom_backend\venv\Lib\site-packages\paho\mqtt\client.py", line 1425, in connect
+    return self.reconnect()
+           ~~~~~~~~~~~~~~^^
+  File "C:\ATOM\atom_backend\venv\Lib\site-packages\paho\mqtt\client.py", line 1588, in reconnect
+    self._sock = self._create_socket()
+                 ~~~~~~~~~~~~~~~~~~~^^
+  File "C:\ATOM\atom_backend\venv\Lib\site-packages\paho\mqtt\client.py", line 4564, in _create_socket
+    sock = self._create_socket_connection()
+  File "C:\ATOM\atom_backend\venv\Lib\site-packages\paho\mqtt\client.py", line 4595, in _create_socket_connection
+    return socket.create_connection(addr, timeout=self._connect_timeout, source_address=source)
+           ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\AppData\Local\Programs\Python\Python313\Lib\socket.py", line 868, in create_connection
+    raise exceptions[0]
+  File "C:\Users\HP\AppData\Local\Programs\Python\Python313\Lib\socket.py", line 853, in create_connection
+    sock.connect(sa)
+    ~~~~~~~~~~~~^^^^
+ConnectionRefusedError: [WinError 10061] No connection could be made because the target machine actively refused it
